@@ -33,21 +33,26 @@
 				</dd>
 			</dl></li>
 		<li class="layui-nav-item">
-			<form id="logoutForm" action="${pageContext.request.contextPath }/my/app/logout" method="post">
+<%--			<a href="/do/logout.html">退出</a>--%>
+			<form id="logoutForm" action="${pageContext.request.contextPath }/do/logout.html" method="post">
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 			</form>
 			<a id="logoutAnchor" href="">退出</a>
 			<script type="text/javascript">
 				window.onload = function() {
-					
+
+					// 给超链接的dom对象绑定单机响应函数
 					document.getElementById("logoutAnchor").onclick = function() {
-						
+
+						// 提交包含crsf参数的表单
 						document.getElementById("logoutForm").submit();
-						
+
+						// 禁用超链接默认行为
 						return false;
-						
+
+
 					};
-					
+
 				};
 			</script>
 		</li>
