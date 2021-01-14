@@ -1,10 +1,14 @@
 package com.atguigu.security.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+
+import javax.sql.DataSource;
 
 /**
  * WebAppSecurityConfig
@@ -19,6 +23,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableWebSecurity // 表示启用web安全功能
 public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    private DataSource dataSource;
+
+
     /***
      * 重写父类另一个configure方法
      * @param auth
@@ -28,16 +36,16 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //        super.configure(auth); 禁用默认规则
         //在内存中比较
-        auth.inMemoryAuthentication()
+        auth.inMemoryAuthentication()//在内存中完成 账号密码的检查
                 //设置用户名密码
                 .withUser("tom").password("123123")
                 // 设置角色
-                .roles("ADMIN")
+                .roles("ADMIN", "学徒")
                 .and()
                 //设置用户名密码
                 .withUser("jerry").password("123123")
                 //设置权限
-                .authorities("SAVE", "EDIT");
+                .authorities("SAVE", "EDIT", "内门弟子");
 
 
     }
@@ -52,6 +60,9 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity security) throws Exception {
         //super.configure(security); 注释掉将取消父类方法中的默认规则
+        JdbcTokenRepositoryImpl tokenRepositoy = new JdbcTokenRepositoryImpl();
+        tokenRepositoy.setDataSource(dataSource);
+
         security
                 //对请求进行授权
                 .authorizeRequests()
@@ -63,6 +74,14 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/layui/**")
                 //可以无条件访问
                 .permitAll()
+                //设置匹配/level1/**的地址
+                .antMatchers("/level1/**")
+                // 要求具备“学徒角色” 才能访问
+                .hasRole("学徒")
+                //  //设置匹配/level2/**的地址
+                .antMatchers("/level2/**")
+                // 要求具备“内门底子权限” 才能访问
+                .hasAuthority("内门弟子")
                 .and()
 //                //对请求进行授权
                 .authorizeRequests()
@@ -88,7 +107,17 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
 //                .disable()//禁用csrf功能
                 .logout() //开启登录功能
                 .logoutUrl("/do/logout.html")//指定处理推出请求的url地址
-                .logoutSuccessUrl("/index.jsp"); // 退出成功后前往的地址
+                .logoutSuccessUrl("/index.jsp") // 退出成功后前往的地址
+                .and()
+//                指定异常处理器
+                .exceptionHandling()
+//                访问被拒绝时前往的页面
+                .accessDeniedPage("/to/no/auth/page.html")
+                .and()
+                // 开启记住我
+                .rememberMe()
+                .tokenRepository(tokenRepositoy)
+        ;
 
 
     }
