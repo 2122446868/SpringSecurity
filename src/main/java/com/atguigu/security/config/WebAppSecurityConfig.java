@@ -2,13 +2,19 @@ package com.atguigu.security.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.io.IOException;
 
 /**
  * WebAppSecurityConfig
@@ -26,6 +32,9 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private MyUserDetailsService userDetailsService;
+
 
     /***
      * 重写父类另一个configure方法
@@ -36,16 +45,18 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //        super.configure(auth); 禁用默认规则
         //在内存中比较
-        auth.inMemoryAuthentication()//在内存中完成 账号密码的检查
-                //设置用户名密码
-                .withUser("tom").password("123123")
-                // 设置角色
-                .roles("ADMIN", "学徒")
-                .and()
-                //设置用户名密码
-                .withUser("jerry").password("123123")
-                //设置权限
-                .authorities("SAVE", "EDIT", "内门弟子");
+//        auth.inMemoryAuthentication()//在内存中完成 账号密码的检查
+//                //设置用户名密码
+//                .withUser("tom").password("123123")
+//                // 设置角色
+//                .roles("ADMIN", "学徒")
+//                .and()
+//                //设置用户名密码
+//                .withUser("jerry").password("123123")
+//                //设置权限
+//                .authorities("SAVE", "EDIT", "内门弟子");
+        // 装配userDetailsService对象
+        auth.userDetailsService(userDetailsService);
 
 
     }
@@ -113,6 +124,14 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
 //                访问被拒绝时前往的页面
                 .accessDeniedPage("/to/no/auth/page.html")
+                // 自定义访问被拒绝时前往的页面
+                .accessDeniedHandler(new AccessDeniedHandler() {
+                    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException e) throws IOException, ServletException {
+                        request.setAttribute("message","抱歉！您无法访问当前页面！！！！");
+                        request.getRequestDispatcher("/WEB-INF/views/no_auth.jsp").forward(request,response);
+
+                    }
+                })
                 .and()
                 // 开启记住我
                 .rememberMe()
