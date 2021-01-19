@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * MyUserDetailsService
- * <功能详细描述>
+ * <自定义MyUserDetailsService完成数据库用户登录>
  *
  * @author 赵长春
  * @version [版本号, 2021/1/14 17:49]
@@ -47,6 +47,7 @@ public class MyUserDetailsService implements UserDetailsService {
 //      给admin设置对象权限信息
         List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_学徒"));
         authorities.add(new SimpleGrantedAuthority("UPDATE"));
 
 

@@ -1,12 +1,15 @@
 package com.atguigu.security.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 
@@ -35,6 +38,19 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private MyUserDetailsService userDetailsService;
 
+//    @Autowired
+//    private  MyPasswordEncoder passwordEncoder;
+
+    /***
+     * 使用带盐值加密
+     * @return
+     */
+    // 默认单例不会重复创建
+    @Bean
+    public BCryptPasswordEncoder getBCryptPasswordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
 
     /***
      * 重写父类另一个configure方法
@@ -47,7 +63,7 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
         //在内存中比较
 //        auth.inMemoryAuthentication()//在内存中完成 账号密码的检查
 //                //设置用户名密码
-//                .withUser("tom").password("123123")
+//                .withUser("tom").password("123123")zhuru
 //                // 设置角色
 //                .roles("ADMIN", "学徒")
 //                .and()
@@ -56,7 +72,7 @@ public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
 //                //设置权限
 //                .authorities("SAVE", "EDIT", "内门弟子");
         // 装配userDetailsService对象
-        auth.userDetailsService(userDetailsService);
+        auth.userDetailsService(userDetailsService).passwordEncoder(getBCryptPasswordEncoder());
 
 
     }
